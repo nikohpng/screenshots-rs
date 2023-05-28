@@ -4,14 +4,17 @@ pub struct Image {
   width: u32,
   height: u32,
   buffer: Vec<u8>,
+  rgba: Option<Vec<u8>>,
 }
 
 impl Image {
-  pub fn new(width: u32, height: u32, buffer: Vec<u8>) -> Self {
+
+  pub fn new(width: u32, height: u32, buffer: Vec<u8>, rgba: Vec<u8>) -> Self {
     Image {
       width,
       height,
       buffer,
+      rgba: Some(rgba),
     }
   }
 
@@ -23,6 +26,7 @@ impl Image {
   ) -> Result<Self, EncodingError> {
     let mut buffer = Vec::new();
     let size = (width * height * 4) as usize;
+    let mut rgba = Vec::new();
     let mut bytes = vec![0u8; size];
 
     let u_width = width as usize;
@@ -44,6 +48,11 @@ impl Image {
         bytes[index + 1] = bgra[i + 1];
         bytes[index + 2] = b;
         bytes[index + 3] = 255;
+        rgba.push(r);
+        rgba.push(bgra[i + 1]);
+        rgba.push(b);
+        rgba.push(255);
+
       }
     }
 
@@ -56,7 +65,7 @@ impl Image {
     writer.write_image_data(&bytes)?;
     writer.finish()?;
 
-    Ok(Image::new(width, height, buffer))
+    Ok(Image::new(width, height, buffer, rgba))
   }
 
   pub fn width(&self) -> u32 {
@@ -69,6 +78,10 @@ impl Image {
 
   pub fn buffer(&self) -> &Vec<u8> {
     &self.buffer
+  }
+
+  pub fn rgba(&self) -> &Vec<u8> {
+    self.rgba.as_ref().unwrap()
   }
 }
 
